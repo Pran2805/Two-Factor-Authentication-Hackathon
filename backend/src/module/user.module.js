@@ -9,7 +9,8 @@ const userSchema = new Schema({
     },
     email: {
         type: String,
-        require:true
+        require:true,
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please provide a valid email address'],
         
     },
     password: {
@@ -19,8 +20,11 @@ const userSchema = new Schema({
     otp:{
         type:String
 
-    }
-    
+    },
+    otpAttempts: {
+        type: Number,
+        default: 0, // OTP attempts start at 0
+    },
    
 }, {
     timestamps: true
