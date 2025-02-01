@@ -41,7 +41,7 @@ console.log(email, password)
             <div className='max-w-md border-2 shadow-md shadow-primary flex flex-col rounded-md p-6'>
                 <div className='flex justify-center'>
                     <div className='size-10 bg-base-300 flex items-center justify-center mt-4 rounded-md'>
-                        <MessageSquareIcon className='size-7 text-secondary' />
+                        <MessageSquareIcon className='size-7 text-primary' />
                     </div>
                 </div>
 
