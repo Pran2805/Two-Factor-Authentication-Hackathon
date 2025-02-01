@@ -7,23 +7,19 @@ import { options } from "../constants.js";
 const generateOtp = () => crypto.randomInt(100000, 999999).toString();
 
 
+import { sendOtpEmail } from "../utils/nodemailer.js";
+
 export const register = async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-       
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: "User already exists" });
         }
 
-       
         const hashedPassword = await bcrypt.hash(password, 10);
-
-    
         const otp = generateOtp();
-
-     
         const otpExpires = new Date(Date.now() + 1 * 60 * 1000);
 
         const newUser = new User({
@@ -32,11 +28,13 @@ export const register = async (req, res) => {
             password: hashedPassword,
             otp,
             otpExpires,
-            otpAttempts: 0, 
+            otpAttempts: 0,
         });
 
         await newUser.save();
 
+        // Send OTP to the user's email
+        await sendOtpEmail(email, otp);
 
         setTimeout(async () => {
             const user = await User.findOne({ email });
@@ -46,7 +44,7 @@ export const register = async (req, res) => {
             }
         }, 60 * 1000);
 
-        res.status(201).json({ message: "If your email exists, an OTP was sent. Verify within 1 minute." , otp: otp});
+        res.status(201).json({ message: "If your email exists, an OTP was sent. Verify within 1 minute." });
     } catch (error) {
         console.error("Registration error:", error);
         res.status(500).json({ message: "Registration failed" });
@@ -117,7 +115,7 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
   
-    loginLimiter(req, res, async () => {
+    // loginLimiter(req, res, async () => {
       const user = await User.findOne({ email });
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -132,9 +130,10 @@ export const login = async (req, res) => {
 
       res.cookie("auth", token, options);
       res.status(200).json({ message: "Login successful" });
-    });
+    // });
 
   } catch (error) {
+    console.log(error.message)
     console.error("Login error:", error);
     res.status(500).json({ message: "Login failed" });
   }
@@ -155,3 +154,15 @@ export const logout = (req, res) => {
         res.status(500).json({ message: "Logout failed" });
     }
 };
+
+export const checkAuth = async(req, res) =>{
+    try {
+        res.status(200).json(
+            req.user
+        )
+    } catch (error) {
+        res.status(500).json({
+            message:"Error"
+        })
+    }
+}
